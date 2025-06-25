@@ -1,7 +1,4 @@
 #!/bin/sh
-
-# Locate a Python interpreter and re-execute the script using Python 3
-# We avoid hardcoding python2 since we want to support modern systems
 _=[ 'exec' '/bin/sh' '-c' '''
 which python3 >/dev/null && exec python3 "$0" "$@"
 which python >/dev/null && exec python "$0" "$@"
@@ -12,16 +9,34 @@ exit 1
 del _
 
 import sys
-from distutils.spawn import find_executable as which
+import subprocess
+import os
 
-# Optional version check (Python >= 3.6 recommended)
 if sys.version_info < (3, 6):
     sys.stderr.write("Python 3.6 or higher is required.\n")
     sys.exit(1)
 
-# Now run the original configure logic (you may already have this below)
-# Example:
 print("Running configure with Python", sys.version)
 
-# Insert actual configure logic below here:
-# For example, call out to tools or generate Makefiles
+# Run the original gyp-based configuration step
+try:
+    subprocess.check_call([
+        'python3',
+        'tools/gyp_node.py',
+        '-f', 'make',
+        '--dest-cpu=arm64',
+        '--dest-os=ios',
+        '--with-intl=none',
+        '--cross-compiling',
+        '--enable-static',
+        '--openssl-no-asm',
+        '--v8-options=--jitless',
+        '--without-node-code-cache',
+        '--without-node-snapshot'
+    ])
+except subprocess.CalledProcessError as e:
+    print(f"configure failed: {e}")
+    sys.exit(1)
+
+# Success
+print("✔️  configure complete — config.gypi generated")

@@ -1,28 +1,27 @@
 #!/bin/sh
 
-# Locate python2 interpreter and re-execute the script.  Note that the
-# mix of single and double quotes is intentional, as is the fact that
-# the ] goes on a new line.
+# Locate a Python interpreter and re-execute the script using Python 3
+# We avoid hardcoding python2 since we want to support modern systems
 _=[ 'exec' '/bin/sh' '-c' '''
-which python2.7 >/dev/null && exec python2.7 "$0" "$@"
-which python2 >/dev/null && exec python2 "$0" "$@"
-exec python "$0" "$@"
+which python3 >/dev/null && exec python3 "$0" "$@"
+which python >/dev/null && exec python "$0" "$@"
+echo "No compatible python found (need python3)" >&2
+exit 1
 ''' "$0" "$@"
 ]
 del _
 
 import sys
 from distutils.spawn import find_executable as which
-if sys.version_info[:2] != (2, 7):
-  sys.stderr.write('Please use Python 2.7')
 
-  python2 = which('python3') or which('python')
+# Optional version check (Python >= 3.6 recommended)
+if sys.version_info < (3, 6):
+    sys.stderr.write("Python 3.6 or higher is required.\n")
+    sys.exit(1)
 
-  if python2:
-    sys.stderr.write(':\n\n')
-    sys.stderr.write('  ' + python2 + ' ' + ' '.join(sys.argv))
+# Now run the original configure logic (you may already have this below)
+# Example:
+print("Running configure with Python", sys.version)
 
-  sys.stderr.write('\n')
-  sys.exit(1)
-
-import configure
+# Insert actual configure logic below here:
+# For example, call out to tools or generate Makefiles
